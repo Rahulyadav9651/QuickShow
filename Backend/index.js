@@ -75,7 +75,7 @@ app.use(express.json());
 app.use(
     cors({
         origin: [
-            "http://localhost:5173",
+            "https://quickshow-94b5f.web.app/",
             //"https://quickshow-5k0d.onrender.com",
         ],
         credentials: true,
