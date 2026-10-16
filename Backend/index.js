@@ -22,7 +22,7 @@
 // app.use(express.json());
 // app.use(
 //     cors({
-//         origin: "http://localhost:5173/",
+//         origin: "https://quickshow-94b5f.web.app/",
 //         credentials: true,
 //     })
 // );
