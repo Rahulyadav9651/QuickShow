@@ -9,38 +9,79 @@ import DeteSelect from '../components/DeteSelect';
 import Footer from '../components/Footer';
 import MovieCard from '../components/MovieCard';
 import Loading from '../components/Loading';
-
+import { useAppContext } from '../context/AppContext';
+import {toast} from "react-hot-toast";
 
 
 const MoviesDetails = () => {
 const {id}= useParams();
 const navigate= useNavigate();
 const [show, setshow]= useState(null);
+const {shows,axios,getToken,user,fetchFavoriteMovies,favoriteMovies, image_base_url}= useAppContext(); 
 
 const getShow= async ()=>{
 
-  const show= dummyShowsData.find(show=>show._id===id)
+//   const show= dummyShowsData.find(show=>show._id===id)
 
-if(show){
-setshow({
-    movie:show,
-    dataTime:dummyDateTimeData
-  })
+// if(show){
+// setshow({
+//     movie:show,
+//     dataTime:dummyDateTimeData
+//   })
+// }
+
+try{
+
+  const {data}= await axios.get(`/api/show/${id}`)
+if(data.success){
+  setshow(data);
+}
+
+
+}
+catch(error){
+console.log(error)
+
 }
 
   
 
 }
+const handleFavorite= async ()=>{
+
+try{
+if(!user) return toast.error("Please login to proceed")
+const {data}= await axios.post('/api/user/update-favorite',{movieId:id},{headers:{Authorization:`Bearer ${await getToken()}`}})
+
+if(data.success){
+  await fetchFavoriteMovies()
+  toast.success(data.message)
+}
+
+
+}
+catch(error){
+  console.log(error)
+
+}
+
+}
+
+
 
 useEffect(()=>{
   getShow();
 
 },[id])
 
+
+
+
+
   return show ?  (
     <div className='px-6 md:mx-16 lg:px-40 pt-30 md:pt-50'>
       <div className='flex flex-col md:flex-row gap-8 max-w-6xl mx-auto'>
-<img src={show.movie.poster_path} alt='' className='max-md:mx-auto rounded-xl h-104 max-w-70 object-cover'/>
+<img src={image_base_url+ show.movie.poster_path} alt='' className='max-md:mx-auto rounded-xl h-104 max-w-70 object-cover'/>
 <div className='relative flex flex-col gap-3'>
   <BlurCircle top="-100px" left="-100px"/>
   <p className='text-primary'>English</p>
@@ -52,11 +93,11 @@ useEffect(()=>{
 <p className='text-gray-400 mt-2 text-sm leading-tight max-w-xl'>{show.movie.overview}</p>
 <p>{timeFormat(show.movie.runtime)} . {show.movie.genres.map(genre=>genre.name).join(" ,")}.{show.movie.release_date.split("-")[0]}</p>
 
-<div className='flex items-center flex-wrap gap-4 mt-4'>
+<div className='flex  items-center flex-wrap gap-4 mt-4'>
   <button className='flex items-center gap-2 px-7 py-3 text-sm bg-gray-800 hover:bg-gray-900 transition rounded-md font-medium cursor-pointer active:scale-95'> <PlayCircleIcon className='w-5 h-5'/> watch Trailer</button>
  <a href="#dateSelect" className="px-10 py-3 text-sm bg-primary hover:bg-primary-dull transition rounded-md font-medium cursor-pointer active:scale-95" > Buy Tickets </a>
-  <button className='bg-gray-700 p-2.5 rounded-full transition cursor-pointer active:scale-95'>
-    <Heart className={`w-5 h-5`}/>
+  <button onClick={handleFavorite} className='bg-gray-700 p-2.5 rounded-full transition cursor-pointer active:scale-95'>
+    <Heart className={`w-5 h-5 ${favoriteMovies.find(movie=>movie._id===id)? 'fill-primary text-primary' :"" }`}/>
   </button>
 </div>
 
@@ -70,7 +111,7 @@ useEffect(()=>{
   show.movie.casts.slice(0, 12).map((cast, index) => (
     <div key={index} className='flex flex-col items-center text-center'>
       <img
-        src={cast.profile_path}
+        src={ image_base_url+cast.profile_path}
         className="rounded-full h-20 md:h-20 aspect-square object-cover"
         alt={cast.name}
       />
@@ -82,11 +123,11 @@ useEffect(()=>{
 
 </div>
 
-<DeteSelect dateTime={show.dataTime} id={id}/>
+<DeteSelect dateTime={show.dateTime} id={id}/>
 <p className='text-lg font-medium mt-20 mb-8'>You May also Like</p>
 <div className='flex flex-wrap max-sm:justify-center gap-8'>
 {
-  dummyShowsData.slice(0,4).map((movie, index)=>(<MovieCard movie={movie} key={index}/>))
+  shows.slice(0,4).map((movie, index)=>(<MovieCard movie={movie} key={index}/>))
 }
 </div>
 <div className='flex justify-center mt-20'>

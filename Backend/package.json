@@ -12,10 +12,14 @@
   "description": "",
   "dependencies": {
     "@clerk/express": "^2.1.78",
+    "axios": "^1.20.0",
+    "cors": "^2.8.6",
     "dotenv": "^18.0.6",
     "express": "^5.3.0",
     "inngest": "^4.23.0",
     "mongoose": "^9.11.1",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "stripe": "^23.0.0",
+    "svix": "^2.8.0"
   }
 }

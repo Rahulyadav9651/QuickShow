@@ -5,6 +5,8 @@ import Loading from '../../components/Loading';
 import Title from './Title';
 import { useState } from 'react';
 import BlurCircle from '../../components/BlurCircle';
+import { useAppContext } from '../../context/AppContext';
+import toast from 'react-hot-toast';
 
 const Dashboard = () => {
 
@@ -16,14 +18,7 @@ const [dashboardData, setDashboardData]= useState({
 });
 
 const [loading, setLoading]= useState(true);
-// const dashboardCards=[
-
-//   {title:"Total Bookings", value:dashboardData.totalBookings || "0", icon:ChartLineIcon},
-// {title:"Total Revenue", value: dashboardData.totalRevenue || "0", icon:CircleDollarSignIcon},
-// {title:"Active Shows", value:dashboardData.activeShows || "0", icon:PlayCircleIcon},
-// {title:"Total Users", value:dashboardData.totalUser || "0" , icon:UserIcon}
-
-// ]
+const {axios, getToken, user, image_base_url}= useAppContext();
 
 const dashboardCards = [
   {
@@ -59,12 +54,42 @@ const dashboardCards = [
 
 
 const fetchDashboardData= async()=>{
-   setDashboardData(dummyDashboardData)
-   setLoading(false);
+   //setDashboardData(dummyDashboardData)
+
+   try{
+const {data}= await  axios.get("/api/admin/dashboard",{headers:{
+  Authorization:`Bearer ${await getToken()}`
+}})
+
+if(data.success){
+  setDashboardData(data.dashboardData)
+  setLoading(false)
+}
+else{
+  toast.error(data.message)
+}
+
+
+   }
+
+
+   catch(error){
+toast.error("Error fatching dashboard data:", error)
+
+   }
+
+
+
+   //setLoading(false);
 };
 useEffect(()=>{
+
+if(user){
 fetchDashboardData();
-},[])
+}
+
+
+},[user])
 
   return  !loading ? (
     <div>
@@ -102,7 +127,7 @@ fetchDashboardData();
       className="w-55 rounded-lg overflow-hidden h-full pb-3 bg-primary/10 border border-primary/20 hover:-translate-y-1 transition duration-300"
     >
       <img
-        src={show.movie.poster_path}
+        src={ image_base_url+show.movie.poster_path}
         alt={show.movie.title}
         className="h-60 w-full object-cover"
       />

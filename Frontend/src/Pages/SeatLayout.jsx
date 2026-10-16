@@ -12,9 +12,16 @@ import isoTimeFormet from '../lib/isoTimeFormet';
 import BlurCircle from '../components/BlurCircle';
 import toast from 'react-hot-toast';
 import Footer from '../components/Footer';
+import { useAppContext } from '../context/AppContext';
+
+
+
 
 const SeatLayout = () => {
   const { id, date } = useParams();
+
+
+const {axios, getToken, user}= useAppContext(); 
 
   const groupRows = [
     ['A', 'B'],
@@ -27,18 +34,34 @@ const SeatLayout = () => {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [selectedTime, setSelectedTime] = useState(null);
   const [show, setShow] = useState(null);
+const [occupidSeats, setOccupidSeats]= useState([])
 
   const navigate = useNavigate();
 
   const getShow = async () => {
-    const show = dummyShowsData.find((show) => show._id === id);
+    // const show = dummyShowsData.find((show) => show._id === id);
 
-    if (show) {
-      setShow({
-        movie: show,
-        dateTime: dummyDateTimeData,
-      });
-    }
+    // if (show) {
+    //   setShow({
+    //     movie: show,
+    //     dateTime: dummyDateTimeData,
+    //   });
+    // }
+
+try{
+const {data}= await axios.get(`/api/show/${id}`)
+if(data.success){
+  setShow(data)
+}
+
+}
+
+catch(error){
+  console.log(error)
+}
+
+
+
   };
 
   const handleSeatClick = (seatId) => {
@@ -49,13 +72,46 @@ const SeatLayout = () => {
     if (!selectedSeats.includes(seatId) && selectedSeats.length >= 5) {
       return toast('You can only select 5 Seats.');
     }
-
+if(occupidSeats.includes(seatId)){
+  return toast('This seat is already booked')
+}
     setSelectedSeats((prev) =>
       prev.includes(seatId)
         ? prev.filter((seat) => seat !== seatId)
         : [...prev, seatId]
     );
   };
+
+// const getOccupidSeats = async ()=>{
+
+// try{
+// const {data}= await axios.get(`/api/booking/seats/${selectedSeats.showId}`)
+// if(data.success){
+//   setOccupidSeats(data.occupidSeats)
+// }else{
+//   toast.error(data.message)
+// }
+
+// }
+// catch(error){
+// console.log(error)
+
+// }
+
+
+// }
+const getOccupidSeats = async () => {
+  try {
+    const { data } = await axios.get(`/api/bookings/seats/${selectedTime.showId}`);
+    if (data.success) {
+      setOccupidSeats(data.occupidSeats);
+    } else {
+      toast.error(data.message);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
 
   const renderSeats = (row, count = 9) => (
     <div
@@ -83,7 +139,9 @@ const SeatLayout = () => {
                   ? 'bg-primary text-white border-primary'
                   : 'bg-transparent'
               }
+              ${occupidSeats.includes(seatId) && "opacity-50"}
             `}
+            
           >
             {seatId}
           </button>
@@ -91,6 +149,38 @@ const SeatLayout = () => {
       })}
     </div>
   );
+
+const bookTicket= async ()=>{
+
+  try{
+    if(!user) return toast.error('Please login to proceed')
+
+      if(!selectedTime || !selectedSeats.length) return toast.error('Please select a time and seats')
+
+const {data}= await axios.post('/api/bookings/create',{showId:selectedTime.showId, selectedSeats},{headers:{Authorization:`Bearer ${await getToken()}`}});
+      if(data.success){
+        //toast.success(data.message)
+        window.location.href=data.url;
+        //navigate('/my-bookings')
+      }else{
+      toast.error(data.message);
+      }
+
+  }
+  catch(error){
+    toast.error(error.message)
+  }
+
+
+}
+
+
+
+useEffect(()=>{
+  if(selectedTime){
+    getOccupidSeats()
+  }
+},[selectedTime])
 
   useEffect(() => {
     getShow();
@@ -181,7 +271,7 @@ const SeatLayout = () => {
 
         </div>
 
-<button onClick={()=>navigate('/my-bookings')} className='flex gap-1.5 mt-20 items-center px-5 py-2 border bg-primary rounded-full cursor-pointer text-sm hover:bg-primary-dull transition font-medium active-scale-95'>Proceed to Checkout 
+<button onClick={bookTicket} className='flex gap-1.5 mt-20 items-center px-5 py-2 border bg-primary rounded-full cursor-pointer text-sm hover:bg-primary-dull transition font-medium active-scale-95'>Proceed to Checkout 
 
   <ArrowRightIcon strokeWidth={3} className='w-4 h-4'/>
 </button>
@@ -193,4 +283,7 @@ const SeatLayout = () => {
 };
 
 export default SeatLayout;
+
+
+
 

@@ -3,20 +3,31 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import timeFormat from '../lib/timeFormet';
 import toast from 'react-hot-toast';
+import { useAppContext } from '../context/AppContext';
 
 const MovieCard = ({movie}) => {
  if (!movie) return null;
     const navigate= useNavigate();
 
 
-
+const {image_base_url}= useAppContext();
 
 
 
   return (
     <div className='flex flex-col justify-between p-3 bg-gray-800 rounded-2xl hover:-translate-y-1 transition duration-300 w-66'>
       
-      <img  onClick={()=>{navigate(`/movies/${movie._id}`); scrollY(0,0)}} src={movie.poster_path} alt='fv' className='rounded-lg h-52 w-full object-cover object-right-buttom cursor-pointer'/>
+      
+<img
+  onClick={() => {
+    navigate(`/movies/${movie._id}`);
+    window.scrollTo(0, 0);
+  }}
+  src={image_base_url + movie.poster_path}
+  alt="fv"
+  className="rounded-lg h-52 w-full object-cover object-right-bottom cursor-pointer"
+/>
+
       <p className=' font-semibold mt-2 truncate'>{movie.title}</p>
 <p className='text-sm text-gray-400 mt-2'>
 
@@ -24,7 +35,9 @@ const MovieCard = ({movie}) => {
 </p>
 
 <div className='flex items-center justify-between mt-4 pb-3'>
-    <button onClick={()=>{navigate(`/movies/${movie._id}`); scrollY(0,0)}} className='px-4 py-2 text-xs bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer'>But Tickets</button>
+    <button onClick={()=>{navigate(`/movies/${movie._id}`), window.scrollY(0,0)}} className='px-4 py-2 text-xs bg-primary hover:bg-primary-dull transition rounded-full font-medium cursor-pointer'>But Tickets</button>
+
+
     <p className='flex items-centerm gap-1 text-sm text-gray-400 mt-1 pr-1 '>
         <StarIcon  className='w-4 h-4 text-primary fill-primary'/>
         {movie.vote_average.toFixed(1)}

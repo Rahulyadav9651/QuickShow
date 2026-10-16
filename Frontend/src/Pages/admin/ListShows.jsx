@@ -3,30 +3,37 @@ import { dummyShowsData } from '../../assets/assets';
 import Loading from '../../components/Loading';
 import Title from './Title';
 import { dateFormat } from '../../lib/dateFormet';
-
+import { useAppContext } from '../../context/AppContext';
 
 const ListShows = () => {
 
 const [shows, setShows]= useState([]);
 const [loading, setLoading]= useState(true);
+const {axios, getToken, user}= useAppContext();
 
 
 const getAllShows= async ()=>{
 
   try{
 
-    setShows([
-      {
-        movie:dummyShowsData[0],
-        showDateTime:"2025-06-30T02:30:00.000Z",
-        showPrice:59,
-        occupiedSeats:{
-          A1:"user_1",
-          B1:"user_2",
-          C1:"user_3"
-        }
-      }
-    ]);
+    // setShows([
+    //   {
+    //     movie:dummyShowsData[0],
+    //     showDateTime:"2025-06-30T02:30:00.000Z",
+    //     showPrice:59,
+    //     occupiedSeats:{
+    //       A1:"user_1",
+    //       B1:"user_2",
+    //       C1:"user_3"
+    //     }
+    //   }
+    // ]);
+
+    const {data}= await axios.get("/api/admin/all-shows",{
+headers:{Authorization:`Bearer ${await getToken()}`}
+
+    })
+setShows(data.shows)
     setLoading(false);
     
   }
@@ -37,8 +44,12 @@ const getAllShows= async ()=>{
 }
 
 useEffect(()=>{
-getAllShows();
-},[]);
+if(user){
+  getAllShows()
+}
+
+//getAllShows();
+},[user]);
   return !loading ? (
     <div>
       <Title  text1="List" text2="Shows"/>
@@ -61,9 +72,16 @@ getAllShows();
 <td className='p-2 min-w-45 pl-5'>{show.movie.title}</td>
 
 <td className='p-2 '>{dateFormat(show.showDateTime)}</td>
-<td className='p-2 '>{Object.keys(show.occupiedSeats).length}</td>
 
-<td className='p-2 '> ₹ {Object.keys(show.occupiedSeats).length*show.showPrice}</td>
+<td className='p-2'>
+  {Object.keys(show?.occupiedSeats ?? {}).length}
+</td>
+
+
+
+<td className='p-2'>
+  ₹ {Object.keys(show.occupiedSeats || {}).length * show.showPrice}
+</td>
 
     </tr>
   ))

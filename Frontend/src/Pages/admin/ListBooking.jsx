@@ -3,22 +3,42 @@ import { dummyBookingData } from '../../assets/assets';
 import Loading from '../../components/Loading';
 import Title from './Title';
 import { dateFormat } from '../../lib/dateFormet';
+import { useAppContext } from '../../context/AppContext';
 
 const ListBooking = () => {
 
 const[bookings, setBookings]= useState([]);
 const[isLoading, setLoading]= useState(true);
+const {axios, getToken, user}= useAppContext();
 
 
 const getAllBkkings= async()=>{
 
-  setBookings(dummyBookingData);
-  setLoading(false);
+  // setBookings(dummyBookingData);
+  // setLoading(false);
+
+try{
+  const {data}= await axios.get('/api/admin/all-bookings',{
+headres:{Authorization : `Bearer ${await getToken()}`}
+
+  })
+setBookings(data.bookings)
+}
+catch(error){
+  console.error(error);
+
+}
+setLoading(false);
+
 };
 
 useEffect(()=>{
-getAllBkkings();
-},[]);
+if(user){
+  getAllBkkings();
+
+}
+
+},[user]);
 
 
 
